@@ -55,7 +55,7 @@ export default async function handler(
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
-  console.log("caption:", caption);
+  // console.log("caption:", caption);
 
   const prompt =
     theory === "7-elements"
@@ -104,7 +104,7 @@ export default async function handler(
     }
   );
   const analysis = analysis_resp.data.completions[0].data.text;
-  console.log("analysis:", analysis);
+  // console.log("analysis:", analysis);
 
   const prompt2 =
     theory === "7-elements"
@@ -153,7 +153,7 @@ export default async function handler(
     }
   );
   const suggestion = suggestion_resp.data.completions[0].data.text;
-  console.log("suggestion:", suggestion);
+  // console.log("suggestion:", suggestion);
 
   res.status(200).json(
     analysis && suggestion
