@@ -99,10 +99,10 @@ export function MainPage() {
         <Box pt="3vh" pb="5vh">
           <Container maxW="container.xl">
             <VStack w="100%">
-              <Text fontSize={"32px"} fontWeight={600}>
+              <Text fontSize={"32px"} fontWeight={600} textAlign={"center"}>
                 Roomcap 🧢
               </Text>
-              <Text>
+              <Text textAlign={"center"}>
                 Evaluate your room design with multiple theory and give a
                 suggestion to improve using AI
               </Text>
@@ -115,6 +115,7 @@ export function MainPage() {
                     borderRadius={8}
                     border="1px solid #EFEFEF"
                     boxShadow={"md"}
+                    textAlign={"center"}
                   >
                     <Text fontWeight={600}>Step 1: Upload your room image</Text>
                     {originalImage ? (
@@ -142,7 +143,7 @@ export function MainPage() {
                       <option value={"feng-shui"}>Feng Shui</option>
                     </Select>
                     <Text fontWeight={600}>
-                      Step 3: Click generate to get your result
+                      Step 3: Click to get result
                     </Text>
                     <Button
                       colorScheme={"spaceblue"}
@@ -221,7 +222,7 @@ export function MainPage() {
                       </Flex>
                     )}
                     {!isLoading && analysis && suggestion && (
-                      <Grid templateColumns="repeat(1, 1fr)" h="100%">
+                      <Grid templateColumns="repeat(1, 1fr)" h="100%" gap={4}>
                         <GridItem>
                           <VStack w="100%" h="100%">
                             <Flex
@@ -240,7 +241,7 @@ export function MainPage() {
                               value={analysis}
                               isReadOnly
                               w="100%"
-                              h="100%"
+                              h={{md: "100%", base: "300px"}}
                             />
                           </VStack>
                         </GridItem>
@@ -262,7 +263,7 @@ export function MainPage() {
                               value={suggestion}
                               isReadOnly
                               w="100%"
-                              h="100%"
+                              h={{md: "100%", base: "300px"}}
                             />
                           </VStack>
                         </GridItem>
