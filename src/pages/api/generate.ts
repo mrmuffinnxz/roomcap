@@ -1,150 +1,173 @@
 import axios from "axios";
-import FormData from "form-data";
 import type { NextApiRequest, NextApiResponse } from "next/types";
-import cv from "@techstark/opencv-js";
-import Jimp from "jimp";
 
-interface GenerationResponse {
-  artifacts: Array<{
-    base64: string;
-    seed: number;
-    finishReason: string;
-  }>;
-}
-
+type Data = {
+  analysis: string;
+  suggestion: string;
+};
 interface ExtendedNextApiRequest extends NextApiRequest {
   body: {
-    prompt: string;
     imageUrl: string;
-    imageMaskUrl: string;
+    theory: string;
   };
-}
-
-async function convertDataURIToBuffer(dataURI: string) {
-  let image = await axios.get(dataURI, { responseType: "arraybuffer" });
-  return Buffer.from(image.data);
 }
 
 export default async function handler(
   req: ExtendedNextApiRequest,
-  res: NextApiResponse<GenerationResponse>
+  res: NextApiResponse<Data>
 ) {
-  const { prompt, imageUrl, imageMaskUrl } = req.body;
+  const { imageUrl, theory } = req.body;
+  let startResponse = await axios.post(
+    "https://api.replicate.com/v1/predictions",
+    {
+      version:
+        "c1f0352f9da298ac874159e350d6d78139e3805b7e55f5df7c5b79a66ae19528",
+      input: {
+        image: imageUrl,
+        // message: "Describe the image in a very detailed way",
+        num_beams: 1,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_KEY}`,
+      },
+    }
+  );
 
-  const result = await Jimp.read(imageUrl)
-    .then(async (image) => {
-      return await Jimp.read(imageMaskUrl)
-        .then(async (maskImage) => {
-          const img1 = cv.matFromImageData(image.bitmap);
-          const img2 = cv.matFromImageData(maskImage.bitmap);
+  let jsonStartResponse = await startResponse.data;
+  let endpointUrl = jsonStartResponse.urls.get;
 
-          const base_size = 64;
-          const pi = 4;
-          const pt = 2,
-            pb = 2,
-            pl = 2,
-            pr = 2;
-
-          cv.resize(
-            img1,
-            img1,
-            new cv.Size(pi * base_size, pi * base_size),
-            0,
-            0,
-            cv.INTER_AREA
-          );
-          cv.resize(
-            img2,
-            img2,
-            new cv.Size(pi * base_size, pi * base_size),
-            0,
-            0,
-            cv.INTER_AREA
-          );
-
-          let pad1 = new cv.Mat();
-          let pad2 = new cv.Mat();
-          let s = new cv.Scalar(0, 0, 0, 255);
-          cv.copyMakeBorder(
-            img1,
-            pad1,
-            pt * base_size,
-            pb * base_size,
-            pl * base_size,
-            pr * base_size,
-            cv.BORDER_CONSTANT,
-            s
-          );
-          cv.copyMakeBorder(
-            img2,
-            pad2,
-            pt * base_size,
-            pb * base_size,
-            pl * base_size,
-            pr * base_size,
-            cv.BORDER_CONSTANT,
-            s
-          );
-
-          cv.cvtColor(pad2, pad2, cv.COLOR_RGBA2GRAY, 0);
-          cv.threshold(pad2, pad2, 177, 255, cv.THRESH_BINARY);
-          cv.cvtColor(pad2, pad2, cv.COLOR_GRAY2RGBA);
-
-          const jimpImg1 = new Jimp({
-            width: pad1.cols,
-            height: pad1.rows,
-            data: Buffer.from(pad1.data),
-          });
-          // jimpImg1.write("test.png");
-
-          const jimpImg2 = new Jimp({
-            width: pad2.cols,
-            height: pad2.rows,
-            data: Buffer.from(pad2.data),
-          });
-          // jimpImg2.write("test2.png");
-
-          let responseJSON: GenerationResponse | null = null;
-
-          const formData = new FormData();
-          jimpImg1.getBuffer(Jimp.MIME_PNG, async (e, buffer) => {
-            jimpImg2.getBuffer(Jimp.MIME_PNG, async (e, buffer2) => {
-              // https://platform.stability.ai/rest-api#tag/v1generation/operation/masking
-              formData.append("init_image", buffer);
-              formData.append("mask_image", buffer2);
-              formData.append("mask_source", "MASK_IMAGE_BLACK");
-              formData.append("text_prompts[0][text]", prompt.toLowerCase());
-              formData.append("cfg_scale", "9");
-              formData.append("samples", 4);
-              formData.append("steps", 30);
-              formData.append("style_preset", "3d-model");
-            });
-          });
-
-          let startResponse = await axios.post(
-            "https://api.stability.ai/v1/generation/stable-inpainting-512-v2-0/image-to-image/masking",
-            formData,
-            {
-              headers: {
-                ...formData.getHeaders(),
-                Accept: "application/json",
-                Authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
-              },
-            }
-          );
-
-          responseJSON = (await startResponse?.data) as GenerationResponse;
-
-          return responseJSON;
-        })
-        .catch((err) => {
-          console.log(err);
-          return null;
-        });
-    })
-    .catch((err) => {
-      console.log(err);
-      return null;
+  let caption = "";
+  while (!caption) {
+    let finalResponse = await axios.get(endpointUrl, {
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_KEY}`,
+      },
     });
-  res.status(200).json(result ? result : { artifacts: [] });
+    let jsonFinalResponse = await finalResponse.data;
+
+    if (jsonFinalResponse.status === "succeeded") {
+      caption = jsonFinalResponse.output;
+    } else if (jsonFinalResponse.status === "failed") {
+      break;
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+  console.log("caption:", caption);
+
+  const prompt =
+    theory === "7-elements"
+      ? `Write a property room analysis description using "7 elements of interior design" rules in bullet point for each element\n\ndescription: ${caption}\n\nlisting:`
+      : `Write a property room analysis description using "Feng Shui" rules rules in detailed\n\ndescription: ${caption}\n\nlisting:`;
+
+  const analysis_resp = await axios.post(
+    "https://api.ai21.com/studio/v1/j2-jumbo-instruct/complete",
+    {
+      prompt,
+      numResults: 1,
+      maxTokens: 1000,
+      temperature: 1,
+      topKReturn: 0,
+      topP: 1,
+      countPenalty: {
+        scale: 0,
+        applyToNumbers: false,
+        applyToPunctuations: false,
+        applyToStopwords: false,
+        applyToWhitespaces: false,
+        applyToEmojis: false,
+      },
+      frequencyPenalty: {
+        scale: 0,
+        applyToNumbers: false,
+        applyToPunctuations: false,
+        applyToStopwords: false,
+        applyToWhitespaces: false,
+        applyToEmojis: false,
+      },
+      presencePenalty: {
+        scale: 0,
+        applyToNumbers: false,
+        applyToPunctuations: false,
+        applyToStopwords: false,
+        applyToWhitespaces: false,
+        applyToEmojis: false,
+      },
+      stopSequences: [],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.AI21_API_KEY}`,
+      },
+    }
+  );
+  const analysis = analysis_resp.data.completions[0].data.text;
+  console.log("analysis:", analysis);
+
+  const prompt2 =
+    theory === "7-elements"
+      ? `${
+          prompt + "\n\n" + analysis
+        }\n\nWrite room improvement suggestions based on the information above in a specific detailed, bullet-point format, with long reasoning explanation\n\nsuggestion:`
+      : `${
+          prompt + "\n\n" + analysis
+        }\n\nWrite room improvement suggestions based on the information above in a specific detailed, bullet-point format, with long reasoning explanation\n\nsuggestion:`;
+
+  const suggestion_resp = await axios.post(
+    "https://api.ai21.com/studio/v1/j2-jumbo-instruct/complete",
+    {
+      prompt: prompt2,
+      numResults: 1,
+      maxTokens: 1000,
+      temperature: 1,
+      topKReturn: 0,
+      topP: 1,
+      countPenalty: {
+        scale: 0,
+        applyToNumbers: false,
+        applyToPunctuations: false,
+        applyToStopwords: false,
+        applyToWhitespaces: false,
+        applyToEmojis: false,
+      },
+      frequencyPenalty: {
+        scale: 0,
+        applyToNumbers: false,
+        applyToPunctuations: false,
+        applyToStopwords: false,
+        applyToWhitespaces: false,
+        applyToEmojis: false,
+      },
+      presencePenalty: {
+        scale: 0,
+        applyToNumbers: false,
+        applyToPunctuations: false,
+        applyToStopwords: false,
+        applyToWhitespaces: false,
+        applyToEmojis: false,
+      },
+      stopSequences: [],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.AI21_API_KEY}`,
+      },
+    }
+  );
+  const suggestion = suggestion_resp.data.completions[0].data.text;
+  console.log("suggestion:", suggestion);
+
+  res.status(200).json(
+    analysis && suggestion
+      ? {
+          analysis,
+          suggestion,
+        }
+      : {
+          analysis: "Something went wrong, please try again.",
+          suggestion: "Something went wrong, please try again.",
+        }
+  );
 }

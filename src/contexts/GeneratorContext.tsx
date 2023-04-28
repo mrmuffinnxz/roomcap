@@ -1,26 +1,16 @@
 import { createContext, useContext, useState } from "react";
 
-export const roomTypes = ["Living Room", "Bedroom"];
-
-export const roomStyles = ["Modern", "Minimalist", "Comtemporary"];
-
 interface GeneratorContextInterface {
-  roomType: string | undefined;
-  setRoomType: (value: string) => void | null;
-  roomStyle: string | undefined;
-  setRoomStyle: (value: string) => void | null;
-  imageName: string | null;
-  setImageName: (value: string | null) => void | null;
   originalImage: string | null;
   setOriginalImage: (value: string | null) => void | null;
-  generatedImage: any;
-  setGeneratedImage: (value: any) => void | null;
-  noBgOriginalImage: string | null;
-  setNoBgOriginalImage: (value: string | null) => void | null;
-  maskedOriginalImage: string | null;
-  setMaskedOriginalImage: (value: string | null) => void | null;
-  resultLoading: boolean;
-  setResultLoading: (value: boolean) => void | null;
+  theory: string;
+  setTheory: (value: string) => void;
+  caption: string | null;
+  setCaption: (value: string | null) => void;
+  result: string | null;
+  setResult: (value: string | null) => void;
+  isLoading: boolean;
+  setIsLoading: (value: boolean) => void;
 }
 
 const GeneratorContext = createContext<GeneratorContextInterface | undefined>(
@@ -40,37 +30,25 @@ export function GeneratorProvider({
 }: {
   children?: React.ReactNode;
 }) {
-  const [roomType, setRoomType] = useState<string>(roomTypes[0]);
-  const [roomStyle, setRoomStyle] = useState<string>(roomStyles[0]);
-
-  const [imageName, setImageName] = useState<string | null>(null);
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [noBgOriginalImage, setNoBgOriginalImage] = useState<string | null>(
-    null
+  const [originalImage, setOriginalImage] = useState<string | null>(
+    "https://storage.googleapis.com/spacely/public/image/additionalTemplates/Bedrooom/BEDROOM04.jpg"
   );
-  const [maskedOriginalImage, setMaskedOriginalImage] = useState<string | null>(
-    null
-  );
-  const [generatedImage, setGeneratedImage] = useState<any>(null);
-  const [resultLoading, setResultLoading] = useState(false);
+  const [theory, setTheory] = useState<string>("7-elements");
+  const [caption, setCaption] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const value = {
-    roomType,
-    setRoomType,
-    roomStyle,
-    setRoomStyle,
-    imageName,
-    setImageName,
     originalImage,
     setOriginalImage,
-    generatedImage,
-    setGeneratedImage,
-    noBgOriginalImage,
-    setNoBgOriginalImage,
-    maskedOriginalImage,
-    setMaskedOriginalImage,
-    resultLoading,
-    setResultLoading,
+    theory,
+    setTheory,
+    caption,
+    setCaption,
+    result,
+    setResult,
+    isLoading,
+    setIsLoading,
   };
   return (
     <GeneratorContext.Provider value={value}>
