@@ -104,7 +104,7 @@ export function MainPage() {
               </Text>
               <Text textAlign={"center"}>
                 Evaluate your room design with multiple theory and give a
-                suggestion to improve using AI
+                suggestion to improve the design using AI
               </Text>
               <Grid pt={4} templateColumns="repeat(10, 1fr)" gap={4} w="100%">
                 <GridItem colSpan={{ base: 10, md: 4 }}>
@@ -142,9 +142,7 @@ export function MainPage() {
                       </option>
                       <option value={"feng-shui"}>Feng Shui</option>
                     </Select>
-                    <Text fontWeight={600}>
-                      Step 3: Click to get result
-                    </Text>
+                    <Text fontWeight={600}>Step 3: Click to get result</Text>
                     <Button
                       colorScheme={"spaceblue"}
                       onClick={() => {
@@ -216,8 +214,9 @@ export function MainPage() {
                         gap={2}
                       >
                         <Text>
-                          upload your room, select your prefer theory and start
-                          generating your result
+                          {error
+                            ? error
+                            : "upload your room, select your prefer theory and start generating your result"}
                         </Text>
                       </Flex>
                     )}
@@ -241,7 +240,7 @@ export function MainPage() {
                               value={analysis}
                               isReadOnly
                               w="100%"
-                              h={{md: "100%", base: "300px"}}
+                              h={{ md: "100%", base: "300px" }}
                             />
                           </VStack>
                         </GridItem>
@@ -263,7 +262,7 @@ export function MainPage() {
                               value={suggestion}
                               isReadOnly
                               w="100%"
-                              h={{md: "100%", base: "300px"}}
+                              h={{ md: "100%", base: "300px" }}
                             />
                           </VStack>
                         </GridItem>
