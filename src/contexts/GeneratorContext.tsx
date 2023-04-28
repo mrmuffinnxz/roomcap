@@ -5,12 +5,16 @@ interface GeneratorContextInterface {
   setOriginalImage: (value: string | null) => void | null;
   theory: string;
   setTheory: (value: string) => void;
-  caption: string | null;
-  setCaption: (value: string | null) => void;
+  analysis: string | null;
+  setAnalysis: (value: string | null) => void;
+  suggestion: string | null;
+  setSuggestion: (value: string | null) => void;
   result: string | null;
   setResult: (value: string | null) => void;
   isLoading: boolean;
   setIsLoading: (value: boolean) => void;
+  error: string | null;
+  setError: (value: string | null) => void;
 }
 
 const GeneratorContext = createContext<GeneratorContextInterface | undefined>(
@@ -34,21 +38,27 @@ export function GeneratorProvider({
     "https://storage.googleapis.com/spacely/public/image/additionalTemplates/Bedrooom/BEDROOM04.jpg"
   );
   const [theory, setTheory] = useState<string>("7-elements");
-  const [caption, setCaption] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const value = {
     originalImage,
     setOriginalImage,
     theory,
     setTheory,
-    caption,
-    setCaption,
+    analysis,
+    setAnalysis,
+    suggestion,
+    setSuggestion,
     result,
     setResult,
     isLoading,
     setIsLoading,
+    error,
+    setError,
   };
   return (
     <GeneratorContext.Provider value={value}>

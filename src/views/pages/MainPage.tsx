@@ -3,18 +3,21 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   Grid,
   GridItem,
   Image,
   Select,
+  Spinner,
   Text,
+  Textarea,
   VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
 import Head from "next/head";
 import { UploadDropzone } from "react-uploader";
 import { Uploader } from "uploader";
-import { GrPowerReset } from "react-icons/gr";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const uploader = Uploader({
   apiKey: !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY
@@ -39,8 +42,12 @@ export function MainPage() {
     setTheory,
     isLoading,
     setIsLoading,
-    caption,
-    setCaption,
+    analysis,
+    setAnalysis,
+    suggestion,
+    setSuggestion,
+    error,
+    setError,
   } = useGenerator();
 
   const UploadZone = () => (
@@ -69,7 +76,8 @@ export function MainPage() {
       })
       .then((res) => {
         if (res.status === 200) {
-          console.log(res.data);
+          setAnalysis(res.data.analysis);
+          setSuggestion(res.data.suggestion);
         }
       });
   };
@@ -139,12 +147,16 @@ export function MainPage() {
                     <Button
                       colorScheme={"spaceblue"}
                       onClick={() => {
+                        setError(null);
                         setIsLoading(true);
                         generate()
                           .then(() => {
                             setIsLoading(false);
                           })
-                          .catch(() => {
+                          .catch((e) => {
+                            setError(
+                              "Something went wrong, Please try again in 10 minutes"
+                            );
                             setIsLoading(false);
                           });
                       }}
@@ -158,7 +170,8 @@ export function MainPage() {
                       onClick={() => {
                         if (!isLoading) {
                           setOriginalImage(null);
-                          setCaption(null);
+                          setAnalysis(null);
+                          setSuggestion(null);
                         }
                       }}
                       cursor={
@@ -179,12 +192,82 @@ export function MainPage() {
                     boxShadow={"md"}
                     align={"left"}
                   >
-                    <Text fontSize={"20px"} fontWeight={600}>
-                      Room Analysis
-                    </Text>
-                    <Text fontSize={"20px"} fontWeight={600}>
-                      Suggestion
-                    </Text>
+                    {isLoading && (
+                      <Flex
+                        w="100%"
+                        h="100%"
+                        justifyContent={"center"}
+                        alignItems={"center"}
+                        flexDirection={"column"}
+                        gap={2}
+                      >
+                        <Spinner color={"primary.0"} size={"xl"} />
+                        <Text>Your result is on the way!</Text>
+                      </Flex>
+                    )}
+                    {!isLoading && (!analysis || !suggestion) && (
+                      <Flex
+                        w="100%"
+                        h="100%"
+                        justifyContent={"center"}
+                        alignItems={"center"}
+                        flexDirection={"column"}
+                        gap={2}
+                      >
+                        <Text>
+                          upload your room, select your prefer theory and start
+                          generating your result
+                        </Text>
+                      </Flex>
+                    )}
+                    {!isLoading && analysis && suggestion && (
+                      <Grid templateColumns="repeat(1, 1fr)" h="100%">
+                        <GridItem>
+                          <VStack w="100%" h="100%">
+                            <Flex
+                              w="100%"
+                              alignItems={"center"}
+                              justifyContent={"space-between"}
+                            >
+                              <Text fontSize={"20px"} fontWeight={600}>
+                                Room Analysis
+                              </Text>
+                              <CopyToClipboard text={analysis}>
+                                <Button>Copy</Button>
+                              </CopyToClipboard>
+                            </Flex>
+                            <Textarea
+                              value={analysis}
+                              isReadOnly
+                              w="100%"
+                              h="100%"
+                            />
+                          </VStack>
+                        </GridItem>
+                        <GridItem>
+                          <VStack w="100%" h="100%">
+                            <Flex
+                              w="100%"
+                              alignItems={"center"}
+                              justifyContent={"space-between"}
+                            >
+                              <Text fontSize={"20px"} fontWeight={600}>
+                                Suggestion
+                              </Text>
+                              <CopyToClipboard text={suggestion}>
+                                <Button>Copy</Button>
+                              </CopyToClipboard>
+                            </Flex>
+                            <Textarea
+                              value={suggestion}
+                              isReadOnly
+                              w="100%"
+                              h="100%"
+                            />
+                          </VStack>
+                        </GridItem>
+                      </Grid>
+                    )}
                   </VStack>
                 </GridItem>
               </Grid>

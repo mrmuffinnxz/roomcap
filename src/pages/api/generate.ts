@@ -59,15 +59,15 @@ export default async function handler(
 
   const prompt =
     theory === "7-elements"
-      ? `Write a property room analysis description using "7 elements of interior design" rules in bullet point for each element\n\ndescription: ${caption}\n\nlisting:`
-      : `Write a property room analysis description using "Feng Shui" rules rules in detailed\n\ndescription: ${caption}\n\nlisting:`;
+      ? `You are a professional interior designer, Write a property room analysis description using "7 elements of interior design" theory in bullet point for each element\n\ndescription: ${caption}\n\nlisting:`
+      : `You are a chinese fortune teller, Write a property room analysis description using "Feng Shui" or "Chinese geomancy" theory in detailed\n\ndescription: ${caption}\n\nlisting:`;
 
   const analysis_resp = await axios.post(
     "https://api.ai21.com/studio/v1/j2-jumbo-instruct/complete",
     {
       prompt,
       numResults: 1,
-      maxTokens: 1000,
+      maxTokens: 2048,
       temperature: 1,
       topKReturn: 0,
       topP: 1,
@@ -108,19 +108,15 @@ export default async function handler(
 
   const prompt2 =
     theory === "7-elements"
-      ? `${
-          prompt + "\n\n" + analysis
-        }\n\nWrite room improvement suggestions based on the information above in a specific detailed, bullet-point format, with long reasoning explanation\n\nsuggestion:`
-      : `${
-          prompt + "\n\n" + analysis
-        }\n\nWrite room improvement suggestions based on the information above in a specific detailed, bullet-point format, with long reasoning explanation\n\nsuggestion:`;
+      ? `You are a professional interior designer looking at a room with the follow description: ${caption}\n\n, You have analyze the room using "7 elements of interior design" theory and giving the following opinion: ${analysis}\n\nBy using the "7 elements of interior design" theory, Write room improvement suggestions based on the information above in a specific detailed, bullet-point format, with long reasoning explanation\n\nsuggestion:`
+      : `You are a chinese fortune teller looking at a room with the follow description: ${caption}\n\n, You have analyze the room using "Feng Shui" or "Chinese geomancy" theory and giving the following opinion: ${analysis}\n\nWrite room improvement suggestions based on the information above in a specific detailed, bullet-point format, with long reasoning explanation\n\nsuggestion:`;
 
   const suggestion_resp = await axios.post(
     "https://api.ai21.com/studio/v1/j2-jumbo-instruct/complete",
     {
       prompt: prompt2,
       numResults: 1,
-      maxTokens: 1000,
+      maxTokens: 2048,
       temperature: 1,
       topKReturn: 0,
       topP: 1,
