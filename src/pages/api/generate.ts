@@ -158,8 +158,8 @@ export default async function handler(
   res.status(200).json(
     analysis && suggestion
       ? {
-          analysis,
-          suggestion,
+          analysis: analysis.trim(),
+          suggestion: suggestion.trim(),
         }
       : {
           analysis: "Something went wrong, please try again.",
