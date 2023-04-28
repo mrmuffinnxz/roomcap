@@ -34,9 +34,7 @@ export function GeneratorProvider({
 }: {
   children?: React.ReactNode;
 }) {
-  const [originalImage, setOriginalImage] = useState<string | null>(
-    "https://storage.googleapis.com/spacely/public/image/additionalTemplates/Bedrooom/BEDROOM04.jpg"
-  );
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [theory, setTheory] = useState<string>("7-elements");
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<string | null>(null);
