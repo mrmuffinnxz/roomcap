@@ -59,8 +59,8 @@ export default async function handler(
 
   const prompt =
     theory === "7-elements"
-      ? `You are a professional interior designer, Write a property or room analytical opinion using "7 elements of interior design" theory in bullet point for each element\n\ndescription: ${caption}\n\nlisting:`
-      : `You are a chinese fortune teller, Write a property or room analytical opinion using "Feng Shui" or "Chinese geomancy" theory in detailed\n\ndescription: ${caption}\n\nlisting:`;
+      ? `You are a professional interior designer, Write a property or room analytical opinion using "7 elements of interior design" theory in bullet point for each element\n\ndescription: ${caption}\n\nopinion listing:`
+      : `You are a chinese fortune teller, Write a property or room analytical opinion using "Feng Shui" or "Chinese geomancy" theory in detailed\n\ndescription: ${caption}\n\nopinion listing:`;
 
   const analysis_resp = await axios.post(
     "https://api.ai21.com/studio/v1/j2-jumbo-instruct/complete",
